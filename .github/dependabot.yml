@@ -1,4 +1,7 @@
 # Güvenlik ve sürüm güncellemeleri için otomatik pull request (OWASP A06).
+# Büyük sürüm geçişleri (Next 16, Tailwind 4, TypeScript 7 gibi) kodu bozar;
+# bunlar bilinçli olarak ayrı bir branch'te yapılır. Bot sadece küçük
+# (minor/patch) güncellemeleri önerir.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -10,14 +13,7 @@ updates:
       minor-and-patch:
         update-types: [minor, patch]
     ignore:
-      # Büyük sürüm geçişleri (ör. Next 16) bilinçli olarak, ayrı bir branch'te yapılır.
-      - dependency-name: "next"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "react"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "react-dom"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "eslint"
+      - dependency-name: "*"
         update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: "/"
