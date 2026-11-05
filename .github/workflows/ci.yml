@@ -1,0 +1,35 @@
+# Her push ve pull request'te kodu kontrol eder. Gizli anahtar gerektirmez.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# En az yetki: sadece kodu okuyabilir (OWASP A08).
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Tip, lint, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+      # Canlıda çalışan paketlerde kritik açık varsa kırmızı yanar.
+      - run: npm audit --omit=dev --audit-level=critical

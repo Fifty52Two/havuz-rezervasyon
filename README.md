@@ -63,4 +63,3 @@ src/
 ```
 
 Geliştirici notları için `CLAUDE.md`, güvenlik tasarımı için `SECURITY.md`.
-# havuz-rezervasyon

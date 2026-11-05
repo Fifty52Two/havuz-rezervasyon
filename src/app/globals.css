@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-water font-sans text-deep antialiased;
+}
+
+/* Kulvar ipi: kulvarları ayıran şamandıra dizisi. Arayüzün imza öğesi. */
+.lane-rope {
+  height: 5px;
+  border-radius: 9999px;
+  background: repeating-linear-gradient(
+    90deg,
+    #d7263d 0 12px,
+    #ffffff 12px 18px,
+    #1f6fb2 18px 30px,
+    #ffffff 30px 36px
+  );
+}
+
+:focus-visible {
+  outline: 3px solid #1f6fb2;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
