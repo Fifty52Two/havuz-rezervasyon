@@ -62,3 +62,11 @@ Palette in `tailwind.config.ts` (deep, water, lane, rope, mint, line, mist). Fon
 ## Database changes
 
 Edit `supabase/01_schema.sql` as the source of truth, apply the change in the Supabase SQL Editor, then re-dump with `pg_dump --schema-only --schema=public --no-owner` if you need to verify drift.
+
+## Workflow
+
+- Never push to `main`: it is protected (PR required, CI check "Tip, lint, build" must pass). Work on a branch, open a PR.
+- CI (`.github/workflows/ci.yml`) runs `npm ci`, typecheck, lint, build, `npm audit --omit=dev --audit-level=critical`. Keep it green and secret-free.
+- Vercel deploys `main` to production and every PR to a preview URL.
+- Dependabot opens grouped minor/patch PRs only; major upgrades are ignored on purpose and done deliberately on a branch.
+- SQL changes ship as a new `supabase/0N_*.sql` migration run manually in Supabase before merging code that depends on it; mirror the change in `01_schema.sql`.

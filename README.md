@@ -34,6 +34,8 @@ Yeni bir Supabase projesinde, SQL Editor'de sırayla:
 2. Database → Extensions'tan `pg_cron`'u etkinleştirin, sonra `supabase/02_cron.sql`.
 3. Siteye kayıt olup e-postanızı doğrulayın, sonra `supabase/03_first_admin.sql` (kendi e-postanızla).
 
+`04_` ve sonrası, mevcut bir veritabanını güncelleyen dosyalardır. Yeni kurulumda gerekmez, çünkü `01_schema.sql` her zaman en güncel hâli içerir.
+
 ## Ortam değişkenleri
 
 | Değişken | Açıklama |
@@ -61,5 +63,37 @@ src/
   lib/email/           E-posta gönderimi ve şablonları
   middleware.ts        Oturum, iki adımlı doğrulama ve sayfa erişimi
 ```
+
+## CI/CD ve otomasyon
+
+| Ne | Nerede | Ne yapar |
+|---|---|---|
+| **CI** | `.github/workflows/ci.yml` (GitHub Actions) | Her push ve pull request'te `npm ci`, tip kontrolü, lint, build ve canlıda çalışan paketler için güvenlik denetimi (`npm audit`, kritik seviye). Gizli anahtar gerektirmez. |
+| **CD** | Vercel | `main`'e giren her değişiklik canlıya çıkar (https://gtu-havuz.vercel.app). Her pull request için ayrı bir önizleme adresi açılır; bağlantıyı `vercel[bot]` PR'a yorum olarak yazar. Sunucu bölgesi Dublin (`dub1`), ortam değişkenleri Vercel'de tutulur. |
+| **Dependabot** | `.github/dependabot.yml` | Haftada bir npm paketlerinin küçük (minor/patch) güncellemelerini tek bir PR'da toplar; ayda bir GitHub Actions sürümlerini günceller. Büyük sürümleri (Next 16, Tailwind 4, TypeScript 7 gibi) önermez, çünkü bunlar kodu bozar ve ayrı bir çalışma olarak yapılır. Güvenlik açığı çıkan paketler için ayrıca güvenlik güncellemesi açar. |
+| **Anahtar koruması** | GitHub → Settings → Advanced Security | Secret Protection repoda unutulan anahtarları bulur; Push protection içinde anahtar olan commit'i daha GitHub'a ulaşmadan reddeder. |
+| **Branch koruması** | GitHub → Settings → Rules → `main koruması` | `main`'e doğrudan push yapılamaz; değişiklik pull request ile gelir ve **Tip, lint, build** kontrolü geçmeden merge edilemez. Force push ve dal silme engelli. |
+
+## Çalışma akışı
+
+Her değişiklik bir dalda yapılır ve pull request ile `main`'e girer:
+
+```bash
+git switch main && git pull            # en güncel hâlden başla
+git switch -c tasarim/takvim-renkleri  # kısa, açıklayıcı bir dal adı
+# ... değişiklikleri yap, yerelde dene ...
+npm run typecheck && npm run lint      # CI'dan önce yerelde kontrol
+git add -A && git commit -m "Takvim renkleri güncellendi"
+git push -u origin tasarim/takvim-renkleri
+```
+
+GitHub'da çıkan **Compare & pull request** ile PR açılır. CI yeşil olunca ve Vercel önizlemesinde denendikten sonra **Merge pull request**, ardından **Delete branch**. Son olarak yerelde `git switch main && git pull`.
+
+**Dependabot PR'ları:** CI yeşilse önizlemede giriş, rezervasyon ve çıkış denenir, sonra merge edilir. CI kırmızıysa merge edilmez; PR kapatılır. PR'a yorum olarak yazılabilen komutlar:
+
+- `@dependabot rebase`: PR'ı güncel `main`'e göre yeniden hazırlar (çakışma varsa).
+- `@dependabot recreate`: PR'ı baştan oluşturur (yeni önizleme gerekirse).
+
+**Veritabanı değişiklikleri** Vercel ile otomatik gitmez: yeni bir `supabase/0N_*.sql` dosyası, kodu canlıya almadan önce Supabase SQL Editor'de elle çalıştırılır ve `01_schema.sql` de aynı şekilde güncellenir.
 
 Geliştirici notları için `CLAUDE.md`, güvenlik tasarımı için `SECURITY.md`.
